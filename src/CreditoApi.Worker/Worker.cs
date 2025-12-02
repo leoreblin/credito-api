@@ -1,24 +1,58 @@
-namespace CreditoApi.Worker
+using Confluent.Kafka;
+using CreditoApi.Application.Abstractions;
+using CreditoApi.Domain.Creditos;
+
+namespace CreditoApi.Worker;
+
+public class Worker : BackgroundService
 {
-    public class Worker : BackgroundService
+    private readonly ILogger<Worker> _logger;
+    private readonly IKafkaClientFactory _kafkaClientFactory;
+    private readonly ICreditoRepository _creditoRepository;
+    private readonly string _entryTopic;
+
+    public Worker(
+        ILogger<Worker> logger,
+        IKafkaClientFactory kafkaClientFactory,
+        ICreditoRepository creditoRepository,
+        IConfiguration configuration)
     {
-        private readonly ILogger<Worker> _logger;
+        _logger = logger;
+        _kafkaClientFactory = kafkaClientFactory;
+        _creditoRepository = creditoRepository;
+        _entryTopic = configuration["Kafka:Creditos:EntryTopic"] ?? "integrar-credito-constituido-entry";
+    }
 
-        public Worker(ILogger<Worker> logger)
-        {
-            _logger = logger;
-        }
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        using IConsumer<Null, Credito> consumer = _kafkaClientFactory.CreateConsumer<Credito>();
+        consumer.Subscribe(_entryTopic);
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        while (!stoppingToken.IsCancellationRequested)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                if (_logger.IsEnabled(LogLevel.Information))
+                ConsumeResult<Null, Credito>? result = consumer.Consume(TimeSpan.FromMilliseconds(100));
+
+                if (result?.Message?.Value is { } credito)
                 {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                    await _creditoRepository.AddAsync(credito, stoppingToken);
+                    consumer.Commit(result);
+                    _logger.LogInformation("Crédito {NumeroCredito} inserido pelo worker.", credito.NumeroCredito);
                 }
-                await Task.Delay(1000, stoppingToken);
             }
+            catch (ConsumeException ex)
+            {
+                _logger.LogError(ex, "Erro ao consumir mensagem do Kafka.");
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Erro ao processar crédito recebido do tópico.");
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(500), stoppingToken);
         }
+
+        consumer.Close();
     }
 }
