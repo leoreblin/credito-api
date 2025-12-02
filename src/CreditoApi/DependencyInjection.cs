@@ -1,7 +1,7 @@
 using Confluent.Kafka;
 using CreditoApi.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace CreditoApi;
 

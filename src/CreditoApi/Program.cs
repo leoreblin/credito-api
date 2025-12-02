@@ -16,16 +16,22 @@ builder.Services.AddPresentation(builder.Configuration)
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
-    await CreditoApi.Infrastructure.Database.Seed.DbSeeder.SeedAsync(dbContext);
-
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    if (app.Environment.IsDevelopment())
+    {
+        await CreditoApi.Infrastructure.Database.Seed.DbSeeder.SeedAsync(dbContext);
+    }
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Credito API v1");
+    options.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
