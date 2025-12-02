@@ -20,4 +20,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\\..\\src\\CreditoApi.Application\\CreditoApi.Application.csproj" />
+    <ProjectReference Include="..\\..\\src\\CreditoApi.Domain\\CreditoApi.Domain.csproj" />
+  </ItemGroup>
 </Project>

@@ -10,4 +10,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\\CreditoApi.Application\\CreditoApi.Application.csproj" />
+    <ProjectReference Include="..\\CreditoApi.Domain\\CreditoApi.Domain.csproj" />
+    <ProjectReference Include="..\\CreditoApi.Infrastructure\\CreditoApi.Infrastructure.csproj" />
+  </ItemGroup>
 </Project>
