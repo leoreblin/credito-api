@@ -3,7 +3,6 @@ using CreditoApi.Application.Modules.Creditos;
 using CreditoApi.Domain.Creditos;
 using CreditoApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 
 namespace CreditoApi.Controllers;
 
