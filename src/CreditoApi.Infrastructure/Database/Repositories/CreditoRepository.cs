@@ -20,9 +20,23 @@ internal sealed class CreditoRepository : ICreditoRepository
 
     public async Task BulkInsertAsync(IEnumerable<Credito> creditos, CancellationToken cancellationToken = default)
     {
-        foreach (Credito credito in creditos)
+        var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
         {
-            await AddAsync(credito, cancellationToken);
+            foreach (Credito credito in creditos)
+            {
+                _context.Creditos.Add(credito);
+            }
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception)
+        {
+            transaction.Rollback();
+            throw;
+        }
+        finally
+        {
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 
