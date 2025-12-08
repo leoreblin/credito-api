@@ -26,7 +26,7 @@ public class CreditosController(ICreditoService creditoService) : ApiBaseControl
         IEnumerable<Credito> creditosIntegrados = request.Creditos.Select(c => c.MapToEntity());
         var result = await creditoService.IntegrarCreditosAsync(creditosIntegrados, cancellationToken);
 
-        return result.IsFailure ? BadRequest(result.Error) : Accepted(new { success = true });
+        return result.IsFailure ? FromError(result.Error) : Accepted(new { success = true });
     }
 
     [HttpGet("{numeroNfse}")]
